@@ -1,0 +1,103 @@
+// prisma/schema.prisma
+// Prisma Schema for Clinic Appointment, Patient & Emergency Management System
+// Supports PostgreSQL, MySQL, or SQLite
+
+datasource db {
+  provider = "sqlite" // Can be switched to "postgresql" or "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum BloodGroup {
+  A_POSITIVE
+  A_NEGATIVE
+  B_POSITIVE
+  B_NEGATIVE
+  AB_POSITIVE
+  AB_NEGATIVE
+  O_POSITIVE
+  O_NEGATIVE
+  UNKNOWN
+}
+
+enum AppointmentType {
+  routine
+  emergency
+}
+
+enum SeverityLevel {
+  red     // Critical / Resuscitation / Immediate
+  yellow  // Urgent / Emergent
+  green   // Stable / Routine
+}
+
+enum QueueStatus {
+  waiting
+  in_consultation
+  completed
+  cancelled
+}
+
+model Patient {
+  id               String            @id @default(uuid())
+  name             String
+  phone            String
+  age              Int
+  bloodGroup       String            @default("UNKNOWN")
+  emergencyContact String?
+  medicalNotes     String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  appointments     AppointmentQueue[]
+
+  @@index([phone])
+}
+
+model Doctor {
+  id              String            @id @default(uuid())
+  name            String
+  department      String            // e.g. "Cardiology", "General Medicine", "Emergency Medicine"
+  cabinNumber     String            // e.g. "Cabin 102"
+  isAvailable     Boolean           @default(true)
+  maxSlotsPerDay  Int               @default(30)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  appointments    AppointmentQueue[]
+
+  @@index([department])
+}
+
+model AppointmentQueue {
+  id                   String          @id @default(uuid())
+  patientId            String
+  doctorId             String?
+  type                 AppointmentType @default(routine)
+  severity             SeverityLevel   @default(green)
+  status               QueueStatus     @default(waiting)
+  tokenNumber          String          @unique // e.g. "EM-001", "RT-101"
+  estimatedWaitMinutes Int             @default(0)
+  
+  // Clinical Triage & Vitals (Mandatory for Emergency, Optional for Routine)
+  heartRate            Int?
+  spo2                 Int?
+  bloodPressure        String?
+  triageReason         String?
+  chiefComplaint       String?
+
+  // Timestamps
+  consultationStartAt  DateTime?
+  completedAt          DateTime?
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+
+  // Relations
+  patient              Patient         @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  doctor               Doctor?         @relation(fields: [doctorId], references: [id], onDelete: SetNull)
+
+  @@index([severity, createdAt])
+  @@index([status])
+  @@index([doctorId])
+}

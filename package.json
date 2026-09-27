@@ -1,0 +1,27 @@
+{
+  "name": "clinic-appointment-emergency-system",
+  "version": "1.0.0",
+  "description": "Clinic Appointment, Patient & Emergency Management System (Phase 1)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "test": "node test/api_test.js"
+  },
+  "keywords": [
+    "clinic",
+    "healthcare",
+    "emergency-triage",
+    "appointment-management",
+    "priority-queue"
+  ],
+  "author": "Clinical Engineering Team",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^18.0.4",
+    "express": "^4.21.2",
+    "mysql2": "^3.24.4",
+    "ws": "^8.22.0"
+  }
+}

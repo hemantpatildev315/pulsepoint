@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PulsePoint Clinical OS | Hospital Triage, Doctor Workspace & Patient Records</title>
+  <meta name="description" content="Role-isolated hospital queue management, physician workspace, and patient digital token & record system.">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <!-- ============================================================== -->
+  <!-- 0. PORTAL DIRECTORY HUB (Only visible on root '/') -->
+  <!-- ============================================================== -->
+  <div id="rootDirectoryHub" style="display: none; padding: 4rem 1.5rem; max-width: 900px; margin: 0 auto; text-align: center;">
+    <div style="display: inline-flex; align-items: center; justify-content: center; width: 56px; height: 56px; background: #0F172A; color: #FFF; border-radius: 12px; font-size: 1.8rem; font-weight: 800; margin-bottom: 1rem;">✚</div>
+    <h1 style="font-size: 2rem; font-weight: 800; color: #0F172A; margin-bottom: 0.5rem;">PulsePoint Clinical Workstation</h1>
+    <p style="font-size: 1.05rem; color: #64748B; margin-bottom: 3rem;">Please select your dedicated clinical workstation to proceed:</p>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; text-align: left;">
+      <a href="/reception" style="text-decoration: none; color: inherit; background: #FFF; border: 1px solid #E2E8F0; border-radius: 14px; padding: 2rem; box-shadow: var(--shadow-card); transition: transform 0.15s, border-color 0.15s;">
+        <div style="font-size: 1.75rem; margin-bottom: 0.75rem;">📋</div>
+        <h3 style="font-size: 1.2rem; font-weight: 700; color: #0F172A; margin-bottom: 0.35rem;">Reception Desk</h3>
+        <p style="font-size: 0.85rem; color: #64748B; margin-bottom: 1.5rem;">Queue oversight, code red triage monitoring, and live physician assignment.</p>
+        <span style="font-weight: 700; font-size: 0.85rem; color: #2563EB;">Open Desk ➔</span>
+      </a>
+
+      <a href="/doctor" style="text-decoration: none; color: inherit; background: #FFF; border: 1px solid #E2E8F0; border-radius: 14px; padding: 2rem; box-shadow: var(--shadow-card); transition: transform 0.15s, border-color 0.15s;">
+        <div style="font-size: 1.75rem; margin-bottom: 0.75rem;">🩺</div>
+        <h3 style="font-size: 1.2rem; font-weight: 700; color: #0F172A; margin-bottom: 0.35rem;">Doctor Portal</h3>
+        <p style="font-size: 0.85rem; color: #64748B; margin-bottom: 1.5rem;">Secure physician authentication, active cabin consultation, and digital prescriptions.</p>
+        <span style="font-weight: 700; font-size: 0.85rem; color: #2563EB;">Doctor Login ➔</span>
+      </a>
+
+      <a href="/patient" style="text-decoration: none; color: inherit; background: #FFF; border: 1px solid #E2E8F0; border-radius: 14px; padding: 2rem; box-shadow: var(--shadow-card); transition: transform 0.15s, border-color 0.15s;">
+        <div style="font-size: 1.75rem; margin-bottom: 0.75rem;">📱</div>
+        <h3 style="font-size: 1.2rem; font-weight: 700; color: #0F172A; margin-bottom: 0.35rem;">Patient Portal</h3>
+        <p style="font-size: 0.85rem; color: #64748B; margin-bottom: 1.5rem;">Emergency triage intake, live digital queue tokens, and complete prescription history.</p>
+        <span style="font-weight: 700; font-size: 0.85rem; color: #2563EB;">Patient Access ➔</span>
+      </a>
+    </div>
+  </div>
+
+
+  <!-- ============================================================== -->
+  <!-- 1. RECEPTION DESK PORTAL (/reception) -->
+  <!-- Strictly Role-Isolated: NO cross-role nav switcher! -->
+  <!-- ============================================================== -->
+  <div id="roleReceptionPortal" style="display: none;">
+    <header class="portal-header">
+      <div class="portal-header-container">
+        <div class="portal-brand-block">
+          <div class="brand-cross-icon">✚</div>
+          <div>
+            <div class="portal-title-text">PulsePoint Reception Desk</div>
+            <div style="font-size: 0.75rem; color: var(--text-subtle);">Clinic Queue Oversight & Physician Coordination</div>
+          </div>
+        </div>
+
+        <div class="portal-header-right">
+          <div class="live-sync-indicator">
+            <span class="pulse-dot"></span>
+            <span>Live Sync</span>
+          </div>
+          <div class="num" id="recClock" style="font-weight: 600; font-size: 0.85rem;">--:--:--</div>
+        </div>
+      </div>
+    </header>
+
+    <main class="portal-container">
+      <!-- Phase 3: Emergency Bay & Resource Indicator Status Row -->
+      <div class="facility-resource-bar" id="receptionResourceBar">
+        <div class="facility-bar-left">
+          <span style="font-size: 1.15rem;">🏥</span>
+          <span style="font-weight: 700; color: var(--text-main);">Clinical Facility Capacity:</span>
+        </div>
+        <div class="facility-bar-right">
+          <div class="facility-stat-item">
+            <span class="facility-stat-label">Emergency Bays:</span>
+            <strong id="recBaysAvailable" class="facility-stat-val val-green">4/4 Available</strong>
+          </div>
+          <div class="facility-stat-divider"></div>
+          <div class="facility-stat-item">
+            <span class="facility-stat-label">ICU Status:</span>
+            <span class="facility-stat-badge val-green">
+              <span class="pulse-dot" style="background-color: var(--urgency-green); width: 6px; height: 6px;"></span>
+              Operational (Level 1 Trauma Ready)
+            </span>
+          </div>
+          <div class="facility-stat-divider"></div>
+          <div class="facility-stat-item">
+            <span class="facility-stat-label">Triage Override:</span>
+            <span style="font-weight: 600; color: var(--text-main);">Code Red Priority Active</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3 Large Simple Metric Cards -->
+      <div class="metrics-grid-reception">
+        <div class="reception-metric-box critical-highlight">
+          <div class="metric-title-label">Critical Emergency</div>
+          <div class="metric-hero-num num" id="recMetricCritical">0</div>
+          <div class="metric-sub-label">Immediate resuscitation override</div>
+        </div>
+
+        <div class="reception-metric-box">
+          <div class="metric-title-label">Waiting in Queue</div>
+          <div class="metric-hero-num num" id="recMetricWaiting">0</div>
+          <div class="metric-sub-label">Active outpatient arrivals</div>
+        </div>
+
+        <div class="reception-metric-box">
+          <div class="metric-title-label">In Consultation</div>
+          <div class="metric-hero-num num" id="recMetricConsulting">0</div>
+          <div class="metric-sub-label">Currently with physicians</div>
+        </div>
+      </div>
+
+      <!-- Main Queue Table Section -->
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+        <div>
+          <h2 style="font-size: 1.2rem; font-weight: 700; color: var(--text-main);">Active Queue Oversight</h2>
+          <p style="font-size: 0.825rem; color: var(--text-subtle);">Priority sorting: Code Red ➔ Urgent Amber ➔ Routine Green (FIFO)</p>
+        </div>
+        <div>
+          <button id="btnReceptionRefresh" class="btn-outline-clean" style="font-size: 0.8rem;">
+            ↻ Refresh Queue
+          </button>
+        </div>
+      </div>
+
+      <div class="clean-table-card">
+        <table class="clinical-queue-table">
+          <thead>
+            <tr>
+              <th style="width: 140px;">Priority & Token</th>
+              <th style="min-width: 200px;">Patient Details</th>
+              <th style="min-width: 260px;">Symptoms / Triage Flags</th>
+              <th style="min-width: 230px;">Assigned Physician</th>
+              <th style="width: 120px;">Wait Time</th>
+              <th style="width: 110px; text-align: right;">Action</th>
+            </tr>
+          </thead>
+          <tbody id="receptionQueueTableBody">
+            <tr>
+              <td colspan="6" style="text-align: center; padding: 3rem; color: var(--text-subtle);">
+                Loading clinic queue oversight...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+
+  <!-- ============================================================== -->
+  <!-- 2. DOCTOR PORTAL (/doctor) -->
+  <!-- Strictly Role-Isolated: Dedicated Login + Cabin Workspace -->
+  <!-- ============================================================== -->
+  <div id="roleDoctorPortal" style="display: none;">
+
+    <!-- Screen A: Doctor Login (When Unauthenticated) -->
+    <div id="doctorLoginView" style="display: none;">
+      <header class="portal-header">
+        <div class="portal-header-container" style="justify-content: center;">
+          <div class="portal-brand-block">
+            <div class="brand-cross-icon">✚</div>
+            <div class="portal-title-text">PulsePoint Physician Portal</div>
+          </div>
+        </div>
+      </header>
+
+      <div class="portal-container">
+        <div class="doctor-login-card-container">
+          <div class="patient-card-box">
+            <h2 style="font-size: 1.3rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.35rem;">
+              Physician Authentication
+            </h2>
+            <p style="font-size: 0.85rem; color: var(--text-subtle); margin-bottom: 1.5rem;">
+              Log in to access your cabin queue and patient consultation workspace.
+            </p>
+
+            <form id="doctorLoginForm" novalidate>
+              <div style="margin-bottom: 1.25rem;">
+                <label class="input-label-clean" for="selectDoctorRoster">Select Your Physician Profile:</label>
+                <select id="selectDoctorRoster" class="input-field-clean" required>
+                  <option value="">-- Choose Physician --</option>
+                  <!-- Populated dynamically from MySQL -->
+                </select>
+              </div>
+
+              <div style="margin-bottom: 1.25rem;">
+                <label class="input-label-clean" for="doctorPasswordInput">Physician Password:</label>
+                <input type="password" id="doctorPasswordInput" class="input-field-clean" placeholder="Enter password" value="doctor123" required>
+              </div>
+
+              <button type="submit" id="btnDoctorLoginSubmit" class="btn-solid-dark" style="width: 100%; justify-content: center; padding: 0.85rem;">
+                Login to Cabin Workspace ➔
+              </button>
+            </form>
+
+            <div class="demo-hint-box">
+              <strong>Demo Access Hint:</strong> Select <em>Dr. Priya Patel</em> or <em>Dr. Marcus Thorne</em> | Password: <code style="background: #FEF3C7; padding: 1px 4px; border-radius: 3px; font-weight: 700;">doctor123</code>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Screen B: Authenticated Doctor Workspace -->
+    <div id="doctorWorkspaceView" style="display: none;">
+      <header class="portal-header">
+        <div class="portal-header-container">
+          <div class="doctor-identity-badge">
+            <div class="doc-avatar-circle" id="docAvatar">👨‍⚕️</div>
+            <div>
+              <div id="docHeaderName" style="font-weight: 800; font-size: 1rem; color: var(--text-main);">Dr. Physician</div>
+              <div id="docHeaderCabin" style="font-size: 0.78rem; color: var(--text-subtle);">Cabin -- • Specialty</div>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 1rem;">
+            <div class="live-sync-indicator">
+              <span class="pulse-dot"></span>
+              <span>Cabin Active</span>
+            </div>
+            <button id="btnDoctorLogout" class="btn-outline-clean" style="font-size: 0.8rem; padding: 0.35rem 0.85rem;">
+              Sign Out
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <main class="portal-container">
+        <!-- Active Patient in Cabin Section -->
+        <div id="docActivePatientContainer">
+          <!-- Populated dynamically: Hero Card if consulting, Vacant Card if empty -->
+        </div>
+
+        <!-- Upcoming Queue for this Doctor -->
+        <div style="display: flex; align-items: center; justify-content: space-between; margin: 2rem 0 1rem;">
+          <div>
+            <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--text-main);">Upcoming Assigned Patients</h3>
+            <p style="font-size: 0.825rem; color: var(--text-subtle);">Prioritized waiting queue for your cabin</p>
+          </div>
+          <button id="btnDocQueueRefresh" class="btn-outline-clean" style="font-size: 0.8rem;">
+            ↻ Refresh Stream
+          </button>
+        </div>
+
+        <div class="clean-table-card">
+          <table class="clinical-queue-table">
+            <thead>
+              <tr>
+                <th style="width: 140px;">Priority & Token</th>
+                <th style="min-width: 180px;">Patient Name & Age</th>
+                <th style="min-width: 260px;">Symptoms / Reason for Visit</th>
+                <th style="width: 120px;">Wait Time</th>
+                <th style="width: 140px; text-align: right;">Action</th>
+              </tr>
+            </thead>
+            <tbody id="docQueueTableBody">
+              <tr>
+                <td colspan="5" style="text-align: center; padding: 2.5rem; color: var(--text-subtle);">
+                  Loading assigned patients...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </main>
+    </div>
+
+  </div>
+
+
+  <!-- ============================================================== -->
+  <!-- 3. PATIENT PORTAL (/patient) -->
+  <!-- Strictly Role-Isolated: Check-in, Live Digital Token & Record History -->
+  <!-- ============================================================== -->
+  <div id="rolePatientPortal" style="display: none;">
+    <header class="portal-header">
+      <div class="portal-header-container">
+        <div class="portal-brand-block">
+          <div class="brand-cross-icon">✚</div>
+          <div>
+            <div class="portal-title-text">PulsePoint Patient Portal</div>
+            <div style="font-size: 0.75rem; color: var(--text-subtle);">Self-Service Check-in & Medical Records</div>
+          </div>
+        </div>
+
+        <div class="portal-header-right">
+          <div class="num" id="patientClock" style="font-weight: 600; font-size: 0.85rem;">--:--:--</div>
+        </div>
+      </div>
+    </header>
+
+    <main class="portal-container">
+      <div class="patient-view-wrapper">
+
+        <!-- Subnav: Switch between Check-in and Patient Login / Records -->
+        <div class="patient-top-nav-bar">
+          <button id="ptNavCheckin" class="patient-subnav-btn active">
+            <span>+ Check-in / Emergency</span>
+          </button>
+          <button id="ptNavHistory" class="patient-subnav-btn">
+            <span>📋 Patient Login / View History</span>
+          </button>
+        </div>
+
+        <!-- View A: Patient Check-in View -->
+        <div id="ptCheckinSection">
+          
+          <!-- Primary Emergency Check-In Banner -->
+          <div class="emergency-callout-banner" id="ptEmergencyCalloutBanner">
+            <div>
+              <div style="font-weight: 800; font-size: 1.05rem; letter-spacing: -0.01em;">
+                🚨 Acute Emergency Check-In
+              </div>
+              <div style="font-size: 0.8rem; opacity: 0.95; margin-top: 0.2rem;">
+                Chest pain, severe hypoxia, trauma, or altered consciousness bypass routine lines.
+              </div>
+            </div>
+            <button type="button" class="emergency-btn-trigger" id="btnTriggerEmergencyMode">
+              Emergency Check-in
+            </button>
+          </div>
+
+          <!-- Registration Form Card -->
+          <div class="patient-card-box" id="ptRegistrationFormCard">
+            <h2 id="ptFormTitle" style="font-size: 1.25rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.35rem;">
+              Outpatient Consultation Check-in
+            </h2>
+            <p id="ptFormSubtitle" style="font-size: 0.825rem; color: var(--text-subtle); margin-bottom: 1.5rem;">
+              Please enter your details to receive an incremental queue token.
+            </p>
+
+            <form id="ptIntakeForm" novalidate>
+              <!-- Emergency Priority Alert Container (Hidden during routine check-in) -->
+              <div id="emergencyFlagsContainer" style="display: none; background: #FEF2F2; border: 1px solid #FCA5A5; border-radius: 8px; padding: 0.85rem 1rem; margin-bottom: 1.15rem;">
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                  <div>
+                    <strong style="color: var(--urgency-red); font-size: 0.9rem;">🚨 Emergency Priority Override Active</strong>
+                    <div style="font-size: 0.78rem; color: #7F1D1D; margin-top: 0.15rem;">Assigned directly to Code Red Resuscitation Bay. Phone number is optional.</div>
+                  </div>
+                  <button type="button" id="btnCancelEmergencyMode" class="btn-outline-clean" style="font-size: 0.75rem; padding: 0.3rem 0.65rem; background: #FFF;">
+                    Switch to Routine
+                  </button>
+                </div>
+              </div>
+
+              <!-- Personal fields start completely empty with NO autofill -->
+              <div style="margin-bottom: 1.15rem;">
+                <label class="input-label-clean" for="ptInputName">Full Legal Name *</label>
+                <input type="text" id="ptInputName" class="input-field-clean" placeholder="Enter your full name" autocomplete="off" required>
+              </div>
+
+              <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 0.75rem; margin-bottom: 1.15rem;">
+                <div>
+                  <label class="input-label-clean" for="ptInputPhone">Contact Phone *</label>
+                  <input type="tel" id="ptInputPhone" class="input-field-clean" placeholder="+1 (555) 000-0000" autocomplete="off" required>
+                </div>
+                <div>
+                  <label class="input-label-clean" for="ptInputAge">Age *</label>
+                  <input type="number" id="ptInputAge" class="input-field-clean num" min="0" max="130" placeholder="Years" autocomplete="off" required>
+                </div>
+              </div>
+
+              <!-- Chief Complaint & Symptom Box with Quick-Select Suggestion Chips -->
+              <div style="margin-bottom: 1.5rem;">
+                <label class="input-label-clean" for="ptInputSymptoms">
+                  Chief Complaint / Reason for Presentation
+                </label>
+                <textarea id="ptInputSymptoms" class="textarea-clean" placeholder="Describe symptoms or reasons for today's visit..."></textarea>
+                
+                <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-subtle); margin-top: 0.65rem;">
+                  Quick-select suggestions (click to append):
+                </div>
+                <div class="suggestion-chips-block" id="ptSymptomChips">
+                  <span class="chip-suggestion-item" data-text="Severe crushing chest pain">Chest Pain</span>
+                  <span class="chip-suggestion-item" data-text="Acute shortness of breath and wheezing">Shortness of Breath</span>
+                  <span class="chip-suggestion-item" data-text="High fever above 102F and chills">High Fever</span>
+                  <span class="chip-suggestion-item" data-text="Acute throbbing migraine with nausea">Severe Migraine</span>
+                  <span class="chip-suggestion-item" data-text="Guarded sharp abdominal pain">Abdominal Pain</span>
+                  <span class="chip-suggestion-item" data-text="Fall with suspected acute fracture">Suspected Fracture</span>
+                  <span class="chip-suggestion-item" data-text="Routine hypertension medication review">Routine Blood Pressure</span>
+                  <span class="chip-suggestion-item" data-text="Annual corporate biometric checkup">Annual Physical</span>
+                </div>
+
+                <!-- Phase 3: Smart Triage / Symptom Rule-Based Recommendation Card -->
+                <div id="smartTriageAlertCard" class="smart-triage-card" style="display: none;">
+                  <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 240px;">
+                      <div style="display: flex; align-items: center; gap: 0.4rem; color: var(--urgency-red); font-weight: 800; font-size: 0.875rem;">
+                        <span>🚨</span>
+                        <span>Automated Triage Tag: Code Red (Critical Emergency)</span>
+                      </div>
+                      <div style="font-size: 0.8rem; color: #7F1D1D; margin-top: 0.25rem; line-height: 1.35;">
+                        <strong>Recommended Bay:</strong> Emergency Care / Resuscitation. Critical red-flag keywords detected in your symptoms presentation.
+                      </div>
+                    </div>
+                    <button type="button" id="btnActivateSmartEmergency" class="btn-solid-dark" style="background: var(--urgency-red); font-size: 0.775rem; padding: 0.45rem 0.85rem; white-space: nowrap; border: none; align-self: center;">
+                      Switch to Emergency Intake ➔
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <button type="submit" id="btnPtSubmitCheckin" class="btn-solid-dark" style="width: 100%; justify-content: center; padding: 0.9rem; font-size: 1rem;">
+                <span>Complete Check-in & Get Token</span>
+              </button>
+            </form>
+          </div>
+
+          <!-- Live Digital Token Card (Transitioned Upon Submission) -->
+          <div class="digital-token-display" id="ptDigitalTokenCard" style="display: none;">
+            <div style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-subtle);">
+              Your Live Digital Queue Token
+            </div>
+            <div class="digital-token-hero num" id="ptHeroTokenNumber">RT-104</div>
+
+            <!-- Dynamic Status Banner -->
+            <div id="ptHeroStatusBanner" style="padding: 0.85rem 1.25rem; border-radius: 8px; background: var(--bg-subtle); border: 1px solid var(--border-light); font-weight: 700; color: var(--text-muted); display: inline-flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem;">
+              <span class="pulse-dot" style="background-color: var(--urgency-amber);"></span>
+              <span id="ptHeroStatusText">Waiting for Physician Cabin Call</span>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; background: var(--bg-subtle); border-radius: 10px; padding: 1.25rem; text-align: left; margin-bottom: 1.5rem;">
+              <div>
+                <div style="font-size: 0.75rem; text-transform: uppercase; font-weight: 600; color: var(--text-subtle);">Queue Position</div>
+                <div class="num" id="ptHeroQueuePos" style="font-size: 1.25rem; font-weight: 800; color: var(--text-main); margin-top: 0.2rem;">#1 in Line</div>
+              </div>
+              <div>
+                <div style="font-size: 0.75rem; text-transform: uppercase; font-weight: 600; color: var(--text-subtle);">Estimated Wait</div>
+                <div class="num" id="ptHeroWaitTime" style="font-size: 1.25rem; font-weight: 800; color: var(--text-main); margin-top: 0.2rem;">~10 mins</div>
+              </div>
+              <div>
+                <div style="font-size: 0.75rem; text-transform: uppercase; font-weight: 600; color: var(--text-subtle);">Assigned Doctor</div>
+                <div id="ptHeroDocName" style="font-size: 0.95rem; font-weight: 700; color: var(--text-main); margin-top: 0.2rem;">Dr. Priya Patel</div>
+              </div>
+              <div>
+                <div style="font-size: 0.75rem; text-transform: uppercase; font-weight: 600; color: var(--text-subtle);">Cabin Location</div>
+                <div id="ptHeroCabinName" style="font-size: 0.95rem; font-weight: 700; color: var(--text-main); margin-top: 0.2rem;">Cabin 104</div>
+              </div>
+            </div>
+
+            <p style="font-size: 0.8rem; color: var(--text-subtle); margin-bottom: 1.5rem;">
+              Keep this screen active. An alarm and cabin banner will notify you the instant your physician calls your token.
+            </p>
+
+            <button type="button" id="btnPtResetToCheckin" class="btn-outline-clean" style="width: 100%;">
+              Check In Another Patient
+            </button>
+          </div>
+
+        </div>
+
+        <!-- View B: Patient Login & Medical History -->
+        <div id="ptHistorySection" style="display: none;">
+          
+          <!-- Login Form (if not logged in) -->
+          <div id="ptHistoryLoginForm" class="patient-card-box">
+            <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.35rem;">
+              Access Your Medical Records
+            </h2>
+            <p style="font-size: 0.85rem; color: var(--text-subtle); margin-bottom: 1.5rem;">
+              Enter your registered contact phone number to view past prescriptions, clinical notes, and book follow-ups.
+            </p>
+
+            <form id="ptPhoneAuthForm" novalidate>
+              <div style="margin-bottom: 1.25rem;">
+                <label class="input-label-clean" for="ptAuthPhoneInput">Registered Phone Number:</label>
+                <input type="tel" id="ptAuthPhoneInput" class="input-field-clean" placeholder="e.g. 9876543210" value="9876543210" required>
+              </div>
+
+              <button type="submit" id="btnPtAuthSubmit" class="btn-solid-dark" style="width: 100%; justify-content: center; padding: 0.85rem;">
+                Retrieve Medical History ➔
+              </button>
+            </form>
+
+            <div class="demo-hint-box">
+              <strong>Demo Patient Account:</strong> Enter phone <code style="background: #FEF3C7; padding: 1px 4px; border-radius: 3px; font-weight: 700;">9876543210</code> (Alexander Wright) with complete past cardiovascular and hypertension records.
+            </div>
+          </div>
+
+          <!-- Medical Record History View (When logged in) -->
+          <div id="ptRecordsDisplay" style="display: none;">
+            <!-- Patient Profile Header Card -->
+            <div class="patient-card-box" style="margin-bottom: 1.5rem; background: #FFFFFF; border-left: 4px solid var(--status-consult);">
+              <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div>
+                  <h3 id="ptRecordName" style="font-size: 1.3rem; font-weight: 800; color: var(--text-main);">Alexander Wright</h3>
+                  <div id="ptRecordMeta" style="font-size: 0.85rem; color: var(--text-subtle); margin-top: 0.15rem;">
+                    Age: 45 yrs • Blood Group: O+ • Phone: 9876543210
+                  </div>
+                </div>
+                <button type="button" id="btnPtLogout" class="btn-outline-clean" style="font-size: 0.75rem;">
+                  Sign Out
+                </button>
+              </div>
+            </div>
+
+            <!-- Follow-up Quick Action Card -->
+            <div style="background: var(--urgency-green-bg); border: 1px solid var(--urgency-green-border); border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between;">
+              <div>
+                <strong style="color: var(--urgency-green); font-size: 0.9rem;">Need a Follow-up Consultation?</strong>
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.15rem;">Book a routine visit with your consulting physician in 1 click.</p>
+              </div>
+              <button type="button" id="btnPtBookFollowup" class="btn-solid-green" style="padding: 0.5rem 1rem; font-size: 0.8rem;">
+                Book Follow-Up
+              </button>
+            </div>
+
+            <!-- Timeline of Completed Visits -->
+            <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.75rem;">
+              Past Consultations & Prescriptions:
+            </h4>
+            <div id="ptHistoryListContainer">
+              <!-- Populated dynamically -->
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </main>
+
+    <!-- High-Visibility Turn/Call Alarm Overlay -->
+    <div id="ptCabinCallOverlay" class="cabin-call-overlay" style="display: none;">
+      <div class="cabin-call-box">
+        <div style="font-size: 3rem; margin-bottom: 0.5rem;">🔔</div>
+        <div class="call-box-title">YOUR TURN!</div>
+        <div style="font-size: 1rem; color: var(--text-muted);">Please proceed immediately to:</div>
+        <div class="call-cabin-target" id="ptAlertCabinTarget">Cabin 104</div>
+        <div id="ptAlertDoctorTarget" style="font-size: 1.15rem; font-weight: 700; color: var(--status-consult); margin-bottom: 1.75rem;">
+          Dr. Priya Patel, MD
+        </div>
+        <button type="button" id="btnAcknowledgeCabinCall" class="btn-solid-green" style="padding: 0.9rem 2.5rem; font-size: 1.1rem; width: 100%;">
+          I Am Proceeding Now ➔
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- ============================================================== -->
+  <!-- MODAL: Doctor Complete Visit, Diagnosis & Prescription -->
+  <!-- ============================================================== -->
+  <div id="modalDoctorComplete" class="modal-backdrop-clean hidden" role="dialog" aria-modal="true">
+    <div class="modal-dialog-clean">
+      <div class="modal-header-clean">
+        <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--text-main);">
+          Complete Consultation & Prescribe
+        </h3>
+        <button id="btnCloseDocCompleteModal" style="background: none; border: none; font-size: 1.3rem; color: var(--text-subtle); cursor: pointer;">&times;</button>
+      </div>
+      <div class="modal-body-clean">
+        <div style="margin-bottom: 1.15rem; background: var(--bg-subtle); padding: 0.75rem 1rem; border-radius: 8px;">
+          <span style="font-size: 0.8rem; color: var(--text-subtle);">Consultation for:</span>
+          <strong id="modalDocPatientName" style="color: var(--text-main); font-size: 1rem; margin-left: 0.25rem;">--</strong>
+          <span class="token-badge-clean" id="modalDocToken" style="margin-left: 0.5rem;">--</span>
+        </div>
+
+        <div style="margin-bottom: 1rem;">
+          <label class="input-label-clean" for="modalInputDiagnosis">Primary Clinical Diagnosis *</label>
+          <input type="text" id="modalInputDiagnosis" class="input-field-clean" placeholder="e.g. Essential Hypertension Stage 1, Acute Pharyngitis" required>
+        </div>
+
+        <div style="margin-bottom: 1rem;">
+          <label class="input-label-clean" for="modalInputPrescription">Digital Prescriptions (Rx) *</label>
+          <textarea id="modalInputPrescription" class="textarea-clean" style="min-height: 80px;" placeholder="e.g. Rx: Lisinopril 10mg PO once daily in morning. Paracetamol 500mg PRN."></textarea>
+        </div>
+
+        <div>
+          <label class="input-label-clean" for="modalInputAdvice">Dietary & Follow-Up Advice</label>
+          <textarea id="modalInputAdvice" class="textarea-clean" style="min-height: 65px;" placeholder="e.g. Low sodium diet. Log BP twice daily. Follow up in 14 days."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer-clean" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem;">
+        <button type="button" class="btn-outline-clean" id="btnPrintDocRxSlip">
+          <span>🖨️ Print / Save PDF</span>
+        </button>
+        <div style="display: flex; gap: 0.5rem;">
+          <button type="button" class="btn-outline-clean" id="btnCancelDocComplete">Cancel</button>
+          <button type="button" class="btn-solid-dark btn-solid-green" id="btnConfirmDocComplete">
+            <span>✓ Save & Finish Consultation</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phase 3: Official Printable Digital Prescription Slip Container -->
+  <div id="printableRxSlip" class="printable-rx-container">
+    <div class="rx-header">
+      <div class="rx-brand">
+        <div class="rx-logo-cross">✚</div>
+        <div>
+          <h1 class="rx-hospital-name">PulsePoint Ambulatory Clinic & Trauma Center</h1>
+          <p class="rx-hospital-sub">Department of Clinical Medicine & Outpatient Services</p>
+          <p class="rx-hospital-address">440 Medical Arts Pavilion, Suite 200 • Emergency 24/7 Desk: (555) 911-0000</p>
+        </div>
+      </div>
+      <div class="rx-meta-right">
+        <div class="rx-meta-pill" id="rxPrintToken">TOKEN: RT-101</div>
+        <div class="rx-meta-date" id="rxPrintDate">Date: Sep 27, 2026</div>
+      </div>
+    </div>
+
+    <hr class="rx-divider" />
+
+    <div class="rx-grid-two-col">
+      <div class="rx-card-block">
+        <div class="rx-section-label">CONSULTING PHYSICIAN</div>
+        <div class="rx-doc-name" id="rxPrintDoctorName">Dr. Priya Patel, MD</div>
+        <div class="rx-doc-specialty" id="rxPrintDoctorSpecialty">General Internal Medicine</div>
+        <div class="rx-doc-cabin" id="rxPrintDoctorCabin">Cabin 104</div>
+      </div>
+      <div class="rx-card-block">
+        <div class="rx-section-label">PATIENT MEDICAL RECORD</div>
+        <div class="rx-pt-name" id="rxPrintPatientName">Alexander Wright</div>
+        <div class="rx-pt-meta" id="rxPrintPatientMeta">Age: 45 yrs • Blood: O+ • Phone: 9876543210</div>
+        <div class="rx-pt-contact" id="rxPrintEmergency">Emergency Contact: On File</div>
+      </div>
+    </div>
+
+    <div class="rx-section-block">
+      <div class="rx-section-label">PRIMARY CLINICAL DIAGNOSIS</div>
+      <div class="rx-diagnosis-text" id="rxPrintDiagnosis">Essential Hypertension Stage 1</div>
+    </div>
+
+    <div class="rx-section-block">
+      <div class="rx-symbol-label">℞ DIGITAL PRESCRIPTION & DOSAGE SCHEDULE</div>
+      <div class="rx-content-box" id="rxPrintPrescription">
+        <!-- Rendered items -->
+      </div>
+    </div>
+
+    <div class="rx-section-block">
+      <div class="rx-section-label">PHYSICIAN ADVICE, DIET & DISPOSITION</div>
+      <div class="rx-advice-text" id="rxPrintAdvice">Low sodium diet. Rest for 48 hours. Follow up in 14 days.</div>
+    </div>
+
+    <div class="rx-footer-block">
+      <div class="rx-disclaimer">
+        This is a computer-verified digital medical prescription generated by PulsePoint Clinical OS.
+        Certified under standard clinical outpatient documentation protocol.
+      </div>
+      <div class="rx-signature-box">
+        <div class="rx-sig-line"></div>
+        <div class="rx-sig-label">Authorized Attending Physician Signature & Seal</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notification Toast Stack -->
+  <div class="toast-stack-clean" id="toastNotificationStack"></div>
+
+  <!-- Client Logic -->
+  <script src="/js/api.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>

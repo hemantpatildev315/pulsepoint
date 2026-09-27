@@ -1,0 +1,203 @@
+{
+  "doctors": [
+    {
+      "id": "doc-001",
+      "name": "Dr. Marcus Thorne, MD",
+      "department": "Emergency & Trauma",
+      "cabinNumber": "Resuscitation Bay 1",
+      "isAvailable": true,
+      "maxSlotsPerDay": 40,
+      "createdAt": "2026-09-17T07:14:46.540Z",
+      "updatedAt": "2026-09-27T07:14:46.541Z"
+    },
+    {
+      "id": "doc-002",
+      "name": "Dr. Sarah Vance, FACC",
+      "department": "Cardiology",
+      "cabinNumber": "Cabin 102",
+      "isAvailable": true,
+      "maxSlotsPerDay": 25,
+      "createdAt": "2026-09-17T07:14:46.541Z",
+      "updatedAt": "2026-09-27T07:14:46.541Z"
+    },
+    {
+      "id": "doc-003",
+      "name": "Dr. Priya Patel, MD",
+      "department": "General Internal Medicine",
+      "cabinNumber": "Cabin 104",
+      "isAvailable": true,
+      "maxSlotsPerDay": 30,
+      "createdAt": "2026-09-17T07:14:46.541Z",
+      "updatedAt": "2026-09-27T07:14:46.541Z"
+    },
+    {
+      "id": "doc-004",
+      "name": "Dr. James Wilson, MD",
+      "department": "Pediatrics & Family Health",
+      "cabinNumber": "Cabin 106",
+      "isAvailable": true,
+      "maxSlotsPerDay": 28,
+      "createdAt": "2026-09-17T07:14:46.541Z",
+      "updatedAt": "2026-09-27T07:14:46.541Z"
+    }
+  ],
+  "patients": [
+    {
+      "id": "pat-001",
+      "name": "Elena Rostova",
+      "phone": "+1 (555) 234-8901",
+      "age": 58,
+      "bloodGroup": "O+",
+      "emergencyContact": "Dmitri Rostova (+1 555-234-8902)",
+      "medicalNotes": "Known hypertension, coronary stent placed in 2023.",
+      "createdAt": "2026-09-27T05:14:46.541Z",
+      "updatedAt": "2026-09-27T07:14:46.541Z"
+    },
+    {
+      "id": "pat-002",
+      "name": "David Kim",
+      "phone": "+1 (555) 871-3320",
+      "age": 29,
+      "bloodGroup": "A+",
+      "emergencyContact": "Sarah Kim (+1 555-871-3321)",
+      "medicalNotes": "No chronic conditions. Allergic to Penicillin.",
+      "createdAt": "2026-09-27T05:44:46.541Z",
+      "updatedAt": "2026-09-27T07:14:46.541Z"
+    },
+    {
+      "id": "pat-003",
+      "name": "Amara Okafor",
+      "phone": "+1 (555) 492-1184",
+      "age": 42,
+      "bloodGroup": "B+",
+      "emergencyContact": "Chidi Okafor (+1 555-492-1185)",
+      "medicalNotes": "Type 2 Diabetes, well controlled.",
+      "createdAt": "2026-09-27T06:14:46.541Z",
+      "updatedAt": "2026-09-27T07:14:46.541Z"
+    },
+    {
+      "id": "pat-004",
+      "name": "Lucas Miller",
+      "phone": "+1 (555) 912-7744",
+      "age": 9,
+      "bloodGroup": "AB+",
+      "emergencyContact": "Karen Miller (Mother: +1 555-912-7745)",
+      "medicalNotes": "Mild seasonal asthma.",
+      "createdAt": "2026-09-27T06:32:46.541Z",
+      "updatedAt": "2026-09-27T07:14:46.541Z"
+    },
+    {
+      "id": "pat-005",
+      "name": "Robert Hastings",
+      "phone": "+1 (555) 304-6291",
+      "age": 64,
+      "bloodGroup": "O-",
+      "emergencyContact": "Mary Hastings (+1 555-304-6292)",
+      "medicalNotes": "Previous myocardial infarction, on anticoagulant therapy.",
+      "createdAt": "2026-09-27T07:02:46.541Z",
+      "updatedAt": "2026-09-27T07:14:46.541Z"
+    }
+  ],
+  "queue": [
+    {
+      "id": "app-005",
+      "patientId": "pat-005",
+      "doctorId": "doc-001",
+      "type": "emergency",
+      "severity": "red",
+      "status": "waiting",
+      "tokenNumber": "EM-001",
+      "estimatedWaitMinutes": 0,
+      "heartRate": 142,
+      "spo2": 89,
+      "bloodPressure": "190/115",
+      "triageReason": "Critical Flag: Severe Chest Pain; Critical Hypoxia (SpO2: 89%); Severe Arrhythmia / Tachycardia (HR: 142 bpm); Hypertensive Crisis (Systolic BP: 190 mmHg)",
+      "chiefComplaint": "Acute retrosternal chest pain radiating to left jaw, diaphoresis",
+      "consultationStartAt": null,
+      "completedAt": null,
+      "createdAt": "2026-09-27T07:06:46.541Z",
+      "updatedAt": "2026-09-27T07:06:46.541Z"
+    },
+    {
+      "id": "app-003",
+      "patientId": "pat-003",
+      "doctorId": "doc-003",
+      "type": "emergency",
+      "severity": "yellow",
+      "status": "waiting",
+      "tokenNumber": "EM-002",
+      "estimatedWaitMinutes": 10,
+      "heartRate": 118,
+      "spo2": 95,
+      "bloodPressure": "148/92",
+      "triageReason": "Urgent Indicator: Acute Abdominal Pain; Severe Acute Pain (VAS: 8/10)",
+      "chiefComplaint": "Right lower quadrant abdominal guarding, fever 102.1F",
+      "consultationStartAt": null,
+      "completedAt": null,
+      "createdAt": "2026-09-27T06:49:46.541Z",
+      "updatedAt": "2026-09-27T06:49:46.541Z"
+    },
+    {
+      "id": "app-001",
+      "patientId": "pat-001",
+      "doctorId": "doc-002",
+      "type": "routine",
+      "severity": "green",
+      "status": "completed",
+      "tokenNumber": "RT-101",
+      "estimatedWaitMinutes": 0,
+      "heartRate": 74,
+      "spo2": 98,
+      "bloodPressure": "128/82",
+      "triageReason": "Vitals stable, routine outpatient assessment",
+      "chiefComplaint": "Quarterly cardiovascular review and blood pressure titration",
+      "consultationStartAt": "2026-09-27T07:04:46.541Z",
+      "completedAt": "2026-09-27T07:17:52.100Z",
+      "createdAt": "2026-09-27T06:19:46.541Z",
+      "updatedAt": "2026-09-27T07:17:52.100Z"
+    },
+    {
+      "id": "app-002",
+      "patientId": "pat-002",
+      "doctorId": "doc-003",
+      "type": "routine",
+      "severity": "green",
+      "status": "waiting",
+      "tokenNumber": "RT-102",
+      "estimatedWaitMinutes": 25,
+      "heartRate": 68,
+      "spo2": 99,
+      "bloodPressure": "118/76",
+      "triageReason": "Vitals stable, routine outpatient assessment",
+      "chiefComplaint": "Annual corporate physical and routine blood work referral",
+      "consultationStartAt": null,
+      "completedAt": null,
+      "createdAt": "2026-09-27T06:29:46.541Z",
+      "updatedAt": "2026-09-27T07:14:46.541Z"
+    },
+    {
+      "id": "app-004",
+      "patientId": "pat-004",
+      "doctorId": "doc-004",
+      "type": "routine",
+      "severity": "green",
+      "status": "waiting",
+      "tokenNumber": "RT-103",
+      "estimatedWaitMinutes": 15,
+      "heartRate": 90,
+      "spo2": 98,
+      "bloodPressure": "105/65",
+      "triageReason": "Vitals stable, routine outpatient assessment",
+      "chiefComplaint": "Pre-school allergy clearance and booster vaccination",
+      "consultationStartAt": null,
+      "completedAt": null,
+      "createdAt": "2026-09-27T06:44:46.541Z",
+      "updatedAt": "2026-09-27T07:14:46.541Z"
+    }
+  ],
+  "counters": {
+    "emergency": 2,
+    "routine": 103
+  },
+  "savedAt": "2026-09-27T07:17:52.100Z"
+}

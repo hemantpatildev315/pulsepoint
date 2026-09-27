@@ -1,0 +1,1098 @@
+/* public/css/style.css */
+/* Phase 2 Refinement: Route Isolation, Dedicated Consoles, Patient History & Alarms */
+
+:root {
+  /* Surfaces */
+  --bg-app: #F8FAFC;
+  --bg-card: #FFFFFF;
+  --bg-subtle: #F1F5F9;
+
+  /* Typography */
+  --text-main: #0F172A;
+  --text-muted: #475569;
+  --text-subtle: #64748B;
+  --text-light: #94A3B8;
+
+  /* Borders & Dividers */
+  --border-light: #E2E8F0;
+  --border-medium: #CBD5E1;
+  --border-dark: #94A3B8;
+
+  /* Strict Functional Urgency Colors */
+  --urgency-red: #DC2626;
+  --urgency-red-bg: #FEF2F2;
+  --urgency-red-border: #FCA5A5;
+
+  --urgency-amber: #D97706;
+  --urgency-amber-bg: #FFFBEB;
+  --urgency-amber-border: #FCD34D;
+
+  --urgency-green: #16A34A;
+  --urgency-green-bg: #F0FDF4;
+  --urgency-green-border: #BBF7D0;
+
+  --status-consult: #2563EB;
+  --status-consult-bg: #EFF6FF;
+  --status-consult-border: #BFDBFE;
+
+  /* Clinical Slate Actions */
+  --slate-dark: #0F172A;
+  --slate-hover: #1E293B;
+
+  /* Shadows */
+  --shadow-card: 0 1px 3px 0 rgba(15, 23, 42, 0.05), 0 1px 2px -1px rgba(15, 23, 42, 0.05);
+  --shadow-modal: 0 12px 28px -4px rgba(15, 23, 42, 0.15), 0 4px 6px -2px rgba(15, 23, 42, 0.05);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background-color: var(--bg-app);
+  color: var(--text-main);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* -------------------------------------------------------------
+   Role-Isolated Header (NO cross-role nav switcher!)
+   ------------------------------------------------------------- */
+.portal-header {
+  background: #FFFFFF;
+  border-bottom: 1px solid var(--border-light);
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+
+.portal-header-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0.9rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.portal-brand-block {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.brand-cross-icon {
+  width: 28px;
+  height: 28px;
+  background: var(--slate-dark);
+  color: #FFFFFF;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.portal-title-text {
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+}
+
+.portal-header-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.live-sync-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--urgency-green);
+  background: var(--urgency-green-bg);
+  border: 1px solid var(--urgency-green-border);
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+}
+
+.pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--urgency-green);
+  display: inline-block;
+  animation: pulse-dot 1.8s infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(1.15); }
+}
+
+/* -------------------------------------------------------------
+   Main Content Layout
+   ------------------------------------------------------------- */
+.portal-container {
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+  flex: 1;
+}
+
+/* -------------------------------------------------------------
+   PORTAL 1: RECEPTION DESK (/reception)
+   ------------------------------------------------------------- */
+.metrics-grid-reception {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+@media (max-width: 768px) {
+  .metrics-grid-reception {
+    grid-template-columns: 1fr;
+  }
+}
+
+.reception-metric-box {
+  background: #FFFFFF;
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: var(--shadow-card);
+}
+
+.reception-metric-box.critical-highlight {
+  border-left: 4px solid var(--urgency-red);
+}
+
+.metric-title-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.metric-hero-num {
+  font-size: 3rem;
+  font-weight: 800;
+  line-height: 1.1;
+  margin: 0.35rem 0 0.2rem;
+  color: var(--text-main);
+}
+
+.critical-highlight .metric-hero-num {
+  color: var(--urgency-red);
+}
+
+.metric-sub-label {
+  font-size: 0.8rem;
+  color: var(--text-subtle);
+}
+
+/* Airy, Clean Clinical Table */
+.clean-table-card {
+  background: #FFFFFF;
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+.clinical-queue-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.clinical-queue-table th {
+  background: #F8FAFC;
+  padding: 0.85rem 1.25rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-subtle);
+  border-bottom: 1px solid var(--border-light);
+}
+
+.clinical-queue-table td {
+  padding: 1.15rem 1.25rem;
+  border-bottom: 1px solid var(--border-light);
+  vertical-align: middle;
+  font-size: 0.9rem;
+}
+
+.clinical-queue-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.clinical-queue-table tbody tr:hover {
+  background-color: #F8FAFC;
+}
+
+.row-red-triage {
+  background-color: #FFFDFD;
+}
+.row-red-triage:hover {
+  background-color: #FEF2F2 !important;
+}
+
+.token-badge-clean {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-weight: 800;
+  font-size: 0.95rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-light);
+  color: var(--text-main);
+}
+
+.token-badge-clean.red {
+  background: var(--urgency-red-bg);
+  border-color: var(--urgency-red-border);
+  color: var(--urgency-red);
+}
+
+.token-badge-clean.amber {
+  background: var(--urgency-amber-bg);
+  border-color: var(--urgency-amber-border);
+  color: var(--urgency-amber);
+}
+
+.triage-indicator-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  text-transform: uppercase;
+}
+
+.triage-indicator-pill.red {
+  background: var(--urgency-red-bg);
+  border: 1px solid var(--urgency-red-border);
+  color: var(--urgency-red);
+}
+
+.triage-indicator-pill.amber {
+  background: var(--urgency-amber-bg);
+  border: 1px solid var(--urgency-amber-border);
+  color: var(--urgency-amber);
+}
+
+.triage-indicator-pill.green {
+  background: var(--urgency-green-bg);
+  border: 1px solid var(--urgency-green-border);
+  color: var(--urgency-green);
+}
+
+.status-badge-clean {
+  display: inline-block;
+  padding: 0.25rem 0.65rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.status-badge-clean.waiting {
+  background: var(--bg-subtle);
+  color: var(--text-muted);
+}
+
+.status-badge-clean.in-consult {
+  background: var(--status-consult-bg);
+  border: 1px solid var(--status-consult-border);
+  color: var(--status-consult);
+}
+
+.doctor-reassign-select {
+  padding: 0.45rem 0.75rem;
+  border-radius: 6px;
+  border: 1px solid var(--border-light);
+  font-size: 0.85rem;
+  color: var(--text-main);
+  background: #FFFFFF;
+  cursor: pointer;
+  max-width: 230px;
+}
+
+/* -------------------------------------------------------------
+   PORTAL 2: PATIENT PORTAL (/patient)
+   ------------------------------------------------------------- */
+.patient-view-wrapper {
+  max-width: 580px;
+  margin: 0 auto;
+}
+
+.patient-top-nav-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  background: #FFFFFF;
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
+  padding: 0.5rem;
+}
+
+.patient-subnav-btn {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.patient-subnav-btn.active {
+  background: var(--bg-subtle);
+  color: var(--text-main);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+}
+
+/* Primary Emergency Banner */
+.emergency-callout-banner {
+  background: var(--urgency-red);
+  color: #FFFFFF;
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  box-shadow: 0 4px 10px rgba(220, 38, 38, 0.25);
+}
+
+.emergency-btn-trigger {
+  background: #FFFFFF;
+  color: var(--urgency-red);
+  border: none;
+  border-radius: 6px;
+  padding: 0.65rem 1.25rem;
+  font-size: 0.85rem;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.patient-card-box {
+  background: #FFFFFF;
+  border: 1px solid var(--border-light);
+  border-radius: 14px;
+  padding: 2rem;
+  box-shadow: var(--shadow-card);
+}
+
+/* Input Fields */
+.input-label-clean {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-main);
+  margin-bottom: 0.4rem;
+}
+
+.input-field-clean, .textarea-clean {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 0.95rem;
+  color: var(--text-main);
+  background: #FFFFFF;
+  border: 1px solid var(--border-medium);
+  border-radius: 8px;
+  transition: border-color 0.15s ease;
+}
+
+.input-field-clean:focus, .textarea-clean:focus {
+  outline: none;
+  border-color: var(--slate-dark);
+  box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.08);
+}
+
+/* Quick Select Suggestion Chips */
+.suggestion-chips-block {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.chip-suggestion-item {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-light);
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.chip-suggestion-item:hover {
+  background: #FFFFFF;
+  color: var(--text-main);
+  border-color: var(--border-medium);
+}
+
+/* Live Digital Token Card */
+.digital-token-display {
+  background: #FFFFFF;
+  border: 1px solid var(--border-light);
+  border-radius: 16px;
+  padding: 2.5rem 2rem;
+  text-align: center;
+  box-shadow: var(--shadow-card);
+}
+
+.digital-token-hero {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 3.8rem;
+  font-weight: 900;
+  line-height: 1;
+  margin: 0.5rem 0 1rem;
+  color: var(--text-main);
+}
+
+.digital-token-hero.red {
+  color: var(--urgency-red);
+}
+
+/* High-Visibility Cabin Call Alert Overlay */
+.cabin-call-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(4px);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  animation: modal-enter 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cabin-call-box {
+  background: #FFFFFF;
+  border: 4px solid var(--urgency-green);
+  border-radius: 16px;
+  max-width: 520px;
+  width: 100%;
+  padding: 2.5rem 2rem;
+  text-align: center;
+  box-shadow: var(--shadow-modal);
+  animation: call-pulse 1.2s infinite alternate;
+}
+
+@keyframes call-pulse {
+  from { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.4); }
+  to { box-shadow: 0 0 0 20px rgba(22, 163, 74, 0); }
+}
+
+.call-box-title {
+  font-size: 1.8rem;
+  font-weight: 900;
+  color: var(--urgency-green);
+  margin-bottom: 0.5rem;
+}
+
+.call-cabin-target {
+  font-size: 2.2rem;
+  font-weight: 900;
+  color: var(--text-main);
+  margin: 0.5rem 0;
+}
+
+/* Patient Medical Records History View */
+.patient-history-card-item {
+  background: #FFFFFF;
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.25rem;
+  box-shadow: var(--shadow-card);
+}
+
+.history-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-light);
+  padding-bottom: 0.75rem;
+  margin-bottom: 0.85rem;
+}
+
+.rx-box-clinical {
+  background: var(--bg-subtle);
+  border-left: 3px solid var(--status-consult);
+  padding: 0.85rem 1rem;
+  border-radius: 6px;
+  margin: 0.75rem 0;
+  font-size: 0.875rem;
+}
+
+/* -------------------------------------------------------------
+   PORTAL 3: DOCTOR PORTAL (/doctor)
+   ------------------------------------------------------------- */
+.doctor-login-card-container {
+  max-width: 440px;
+  margin: 3rem auto;
+}
+
+.doctor-workspace-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.75rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.doctor-identity-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.doc-avatar-circle {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--slate-dark);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+/* Active Patient In Cabin Hero */
+.active-patient-cabin-card {
+  background: #FFFFFF;
+  border: 2px solid var(--status-consult);
+  border-radius: 14px;
+  padding: 1.75rem;
+  margin-bottom: 2rem;
+  box-shadow: var(--shadow-card);
+}
+
+.active-patient-cabin-card.vacant {
+  border: 1px dashed var(--border-medium);
+  text-align: center;
+  padding: 3rem 2rem;
+}
+
+/* -------------------------------------------------------------
+   Buttons & Generic Components
+   ------------------------------------------------------------- */
+.btn-solid-dark {
+  padding: 0.65rem 1.4rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #FFFFFF;
+  background: var(--slate-dark);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: background 0.15s ease;
+}
+
+.btn-solid-dark:hover {
+  background: var(--slate-hover);
+}
+
+.btn-solid-green {
+  background: var(--urgency-green);
+  color: #FFFFFF;
+}
+.btn-solid-green:hover {
+  background: #15803D;
+}
+
+.btn-outline-clean {
+  padding: 0.55rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: #FFFFFF;
+  border: 1px solid var(--border-medium);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn-outline-clean:hover {
+  background: var(--bg-subtle);
+  color: var(--text-main);
+}
+
+/* Demo Access Hint Card */
+.demo-hint-box {
+  background: var(--urgency-amber-bg);
+  border: 1px solid var(--urgency-amber-border);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-size: 0.8rem;
+  color: var(--urgency-amber);
+  margin-top: 1rem;
+  line-height: 1.4;
+}
+
+/* Modal Dialog */
+.modal-backdrop-clean {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(2px);
+  z-index: 120;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.modal-backdrop-clean.hidden {
+  display: none !important;
+}
+
+.modal-dialog-clean {
+  background: #FFFFFF;
+  border-radius: 14px;
+  max-width: 520px;
+  width: 100%;
+  box-shadow: var(--shadow-modal);
+  border: 1px solid var(--border-light);
+  overflow: hidden;
+  animation: modal-enter 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modal-header-clean {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modal-body-clean {
+  padding: 1.5rem;
+}
+
+.modal-footer-clean {
+  padding: 1rem 1.5rem;
+  background: var(--bg-subtle);
+  border-top: 1px solid var(--border-light);
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+@keyframes modal-enter {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Notification Toast Stack */
+.toast-stack-clean {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 150;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.toast-item-clean {
+  background: var(--slate-dark);
+  color: #FFFFFF;
+  padding: 0.75rem 1.25rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  box-shadow: var(--shadow-modal);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  animation: toast-slide-clean 0.2s ease;
+}
+
+.toast-item-clean.error {
+  background: var(--urgency-red);
+}
+
+.toast-item-clean.success {
+  background: var(--urgency-green);
+}
+
+@keyframes toast-slide-clean {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================== */
+/* Phase 3: Facility Resource Bar (Reception)                     */
+/* ============================================================== */
+.facility-resource-bar {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  padding: 0.85rem 1.25rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  box-shadow: var(--shadow-card);
+}
+
+.facility-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-size: 0.9rem;
+}
+
+.facility-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+  font-size: 0.85rem;
+}
+
+.facility-stat-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.facility-stat-label {
+  color: var(--text-subtle);
+  font-size: 0.8rem;
+}
+
+.facility-stat-val {
+  font-weight: 800;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.facility-stat-val.val-green {
+  color: var(--urgency-green);
+}
+
+.facility-stat-val.val-amber {
+  color: var(--urgency-amber);
+}
+
+.facility-stat-val.val-red {
+  color: var(--urgency-red);
+}
+
+.facility-stat-divider {
+  width: 1px;
+  height: 18px;
+  background: var(--border-light);
+}
+
+.facility-stat-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 700;
+  font-size: 0.8rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 9999px;
+  background: var(--urgency-green-bg);
+  border: 1px solid var(--urgency-green-border);
+  color: var(--urgency-green);
+}
+
+/* ============================================================== */
+/* Phase 3: Smart Triage Card (Patient Portal)                    */
+/* ============================================================== */
+.smart-triage-card {
+  background: var(--urgency-red-bg);
+  border: 1px solid var(--urgency-red-border);
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  margin-top: 1rem;
+  animation: modal-enter 0.2s ease;
+}
+
+/* ============================================================== */
+/* Phase 3: Printable Digital Prescription Slip                   */
+/* ============================================================== */
+.printable-rx-container {
+  display: none;
+}
+
+@media print {
+  /* Hide the rest of the application interface */
+  body {
+    background: #FFFFFF !important;
+    color: #0F172A !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  body > *:not(#printableRxSlip) {
+    display: none !important;
+  }
+
+  #printableRxSlip {
+    display: block !important;
+    position: relative !important;
+    width: 100% !important;
+    padding: 2.5rem 3rem !important;
+    margin: 0 auto !important;
+    background: #FFFFFF !important;
+    color: #0F172A !important;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif !important;
+    box-sizing: border-box !important;
+  }
+
+  #printableRxSlip * {
+    visibility: visible !important;
+  }
+
+  .rx-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 1.25rem;
+  }
+
+  .rx-brand {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .rx-logo-cross {
+    width: 44px;
+    height: 44px;
+    background: #0F172A;
+    color: #FFFFFF;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 800;
+  }
+
+  .rx-hospital-name {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #0F172A;
+    margin: 0 0 0.15rem 0;
+  }
+
+  .rx-hospital-sub {
+    font-size: 0.85rem;
+    color: #475569;
+    margin: 0 0 0.2rem 0;
+  }
+
+  .rx-hospital-address {
+    font-size: 0.775rem;
+    color: #64748B;
+    margin: 0;
+  }
+
+  .rx-meta-right {
+    text-align: right;
+  }
+
+  .rx-meta-pill {
+    display: inline-block;
+    background: #F1F5F9;
+    border: 1px solid #CBD5E1;
+    border-radius: 6px;
+    padding: 0.35rem 0.75rem;
+    font-weight: 800;
+    font-size: 1rem;
+    color: #0F172A;
+    font-family: ui-monospace, monospace;
+    margin-bottom: 0.35rem;
+  }
+
+  .rx-meta-date {
+    font-size: 0.8rem;
+    color: #475569;
+  }
+
+  .rx-divider {
+    border: none;
+    border-top: 2px solid #0F172A;
+    margin: 1rem 0 1.5rem 0;
+  }
+
+  .rx-grid-two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    background: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .rx-card-block {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  .rx-section-label {
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    color: #64748B;
+    text-transform: uppercase;
+    margin-bottom: 0.25rem;
+  }
+
+  .rx-doc-name, .rx-pt-name {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #0F172A;
+  }
+
+  .rx-doc-specialty, .rx-pt-meta {
+    font-size: 0.85rem;
+    color: #334155;
+  }
+
+  .rx-doc-cabin, .rx-pt-contact {
+    font-size: 0.8rem;
+    color: #64748B;
+  }
+
+  .rx-section-block {
+    margin-bottom: 1.35rem;
+  }
+
+  .rx-diagnosis-text {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1E40AF;
+    background: #EFF6FF;
+    border: 1px solid #BFDBFE;
+    border-radius: 6px;
+    padding: 0.65rem 1rem;
+    margin-top: 0.35rem;
+  }
+
+  .rx-symbol-label {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #0F172A;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .rx-content-box {
+    background: #FFFFFF;
+    border: 1px solid #CBD5E1;
+    border-radius: 6px;
+    padding: 1rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.875rem;
+    color: #0F172A;
+    line-height: 1.6;
+    white-space: pre-wrap;
+  }
+
+  .rx-advice-text {
+    font-size: 0.875rem;
+    color: #334155;
+    background: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    border-radius: 6px;
+    padding: 0.65rem 1rem;
+    margin-top: 0.35rem;
+  }
+
+  .rx-footer-block {
+    margin-top: 3rem;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #E2E8F0;
+  }
+
+  .rx-disclaimer {
+    font-size: 0.725rem;
+    color: #64748B;
+    max-width: 60%;
+    line-height: 1.4;
+  }
+
+  .rx-signature-box {
+    text-align: center;
+    min-width: 220px;
+  }
+
+  .rx-sig-line {
+    border-top: 1px dashed #475569;
+    margin-bottom: 0.4rem;
+    height: 1px;
+  }
+
+  .rx-sig-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #475569;
+  }
+
+  @page {
+    size: A4 portrait;
+    margin: 1.25cm;
+  }
+}
+
