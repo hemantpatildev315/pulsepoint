@@ -136,6 +136,7 @@ ORDER BY aq.status = 'waiting' DESC, aq.priority_score ASC, aq.created_at ASC;
 | `POST` | `/api/appointments/book` | Books standard routine visit, generates `RT-XXX` token, sets `priority_score = 3`, broadcasts event. |
 | `POST` | `/api/emergency/intake` | Instant priority override, auto-tags severity (`red`/`yellow`), sets `priority_score = 1` or `2`, generates `EM-XXX`, broadcasts event. |
 | `GET` | `/api/queue/live` | Fetches active queue ordered by: `ORDER BY status = 'waiting' DESC, priority_score ASC, created_at ASC`. |
+| `GET` | `/api/queue/patient-status` | Lightweight endpoint for Vercel/serverless 2s short polling (`tokenNumber` or `patientId`). Returns status, cabinNumber, doctorName, isCalled, calledAt. |
 | `GET` | `/api/queue/token/:tokenNumber` | Real-time status, live queue rank, and cabin call instructions for a specific patient token. |
 | `PATCH` | `/api/queue/:id/status` | Updates status (`'waiting'` ➔ `'in_consultation'` ➔ `'completed'`), saves `prescription_notes`, broadcasts event. |
 | `PATCH` | `/api/queue/:id/assign` | Assigns / reassigns doctor from Reception Desk dropdown, broadcasts event. |
@@ -161,6 +162,11 @@ ORDER BY aq.status = 'waiting' DESC, aq.priority_score ASC, aq.created_at ASC;
    - Status bar across the top of the Reception Desk: **"Emergency Bays: [X/4 Available]"** | **"ICU Status: Operational (Level 1 Trauma Ready)"**.
    - Dynamically decrements available bays as active Code Red patients enter the queue.
 
+4. **Vercel & Serverless Resilient Polling & Mobile Audio Unlocking**:
+   - Replaced WebSocket dependency on serverless environments with a dedicated **2-second database-driven short-polling loop** (`/api/queue/patient-status`).
+   - Automatically detects call transitions (`isCalled: true`), fires the Web Audio alarm, displays the prominent cabin turn modal, and repeats until acknowledged.
+   - Primed audio context on touch and interaction events (`click`, `touchstart`, `touchend`, `pointerdown`, `keydown`, `submit`) to prevent mobile browser autoplay blocking.
+
 ---
 
 ## 💻 Running & Demonstrating
@@ -170,8 +176,9 @@ ORDER BY aq.status = 'waiting' DESC, aq.priority_score ASC, aq.created_at ASC;
 npm install
 
 # 2. Run automated test suites
-node test/phase2_auth_test.js # Phase 2 Dedicated Authentication & Role Isolation (24 tests)
+node test/phase2_auth_test.js # Phase 2 Dedicated Authentication & Role Isolation (26 tests)
 node test/phase3_test.js      # Phase 3 Smart Triage, Printable Slip & Bay Indicators (28 tests)
+node test/polling_test.js     # Serverless / Vercel Short-Polling & Call Alarm Test (16 tests)
 
 # 3. Start the application
 npm start

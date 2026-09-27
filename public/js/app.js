@@ -25,6 +25,30 @@
     }
   }
 
+  // Mobile / Browser Audio Autoplay Unlocking
+  function unlockAudioContext() {
+    initAudioContext();
+    if (audioCtx) {
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      try {
+        if (audioCtx.state === 'running') {
+          const buffer = audioCtx.createBuffer(1, 1, 22050);
+          const source = audioCtx.createBufferSource();
+          source.buffer = buffer;
+          source.connect(audioCtx.destination);
+          source.start(0);
+        }
+      } catch (e) {}
+    }
+  }
+
+  // Prime audio on all user interaction types across mobile and desktop
+  ['click', 'touchstart', 'touchend', 'pointerdown', 'keydown', 'submit'].forEach(evt => {
+    document.addEventListener(evt, unlockAudioContext, { passive: true });
+  });
+
   function playSound(type = 'chime') {
     try {
       initAudioContext();
@@ -214,9 +238,21 @@
       const savedToken = activePatientToken || sessionStorage.getItem('activePatientToken');
       if (savedToken && savedToken === tokenNumber) {
         // Trigger high-urgency audible alarm and visual overlay
-        playSound('alarm');
-        triggerPatientTurnOverlay(doctorName, cabinNumber);
-        refreshPatientDigitalToken();
+        if (!hasAlertedForCurrentCall) {
+          hasAlertedForCurrentCall = true;
+          playSound('alarm');
+          triggerPatientTurnOverlay(doctorName, cabinNumber);
+          stopRepetitiveAlarm();
+          repetitiveAlarmInterval = setInterval(() => {
+            const overlay = document.getElementById('ptCabinCallOverlay');
+            if (overlay && overlay.style.display !== 'none') {
+              playSound('alarm');
+            } else {
+              stopRepetitiveAlarm();
+            }
+          }, 3500);
+        }
+        pollPatientStatus();
       }
     }
 
@@ -888,6 +924,9 @@
     const btnResetCheckin = document.getElementById('btnPtResetToCheckin');
     if (btnResetCheckin) {
       btnResetCheckin.onclick = () => {
+        stopRepetitiveAlarm();
+        stopPatientPolling();
+        hasAlertedForCurrentCall = false;
         sessionStorage.removeItem('activePatientToken');
         activePatientToken = null;
         intakeForm.reset();
@@ -939,6 +978,7 @@
     if (btnAckCall) {
       btnAckCall.onclick = () => {
         document.getElementById('ptCabinCallOverlay').style.display = 'none';
+        stopRepetitiveAlarm();
       };
     }
 
@@ -946,12 +986,13 @@
     const savedToken = sessionStorage.getItem('activePatientToken');
     if (savedToken) {
       activePatientToken = savedToken;
-      refreshPatientDigitalToken();
+      startPatientPolling();
     }
   }
 
   async function handlePatientIntakeSubmit(e) {
     e.preventDefault();
+    unlockAudioContext();
 
     const name = document.getElementById('ptInputName').value.trim();
     const phone = document.getElementById('ptInputPhone').value.trim();
@@ -996,9 +1037,11 @@
       const tokenNumber = result.data.tokenNumber;
       activePatientToken = tokenNumber;
       sessionStorage.setItem('activePatientToken', tokenNumber);
+      hasAlertedForCurrentCall = false;
 
       showToast(`Check-in complete! Assigned Token: ${tokenNumber}`, 'success');
       renderDigitalTokenCard(result.data);
+      startPatientPolling();
 
     } catch (err) {
       showToast(err.message || 'Check-in failed', 'error');
@@ -1028,49 +1071,117 @@
     statusText.textContent = 'Waiting for Physician Cabin Call';
   }
 
-  async function refreshPatientDigitalToken() {
+  // Phase 3 + Vercel: Database-driven short polling (2s interval)
+  let patientPollInterval = null;
+  let hasAlertedForCurrentCall = false;
+  let repetitiveAlarmInterval = null;
+
+  function stopRepetitiveAlarm() {
+    if (repetitiveAlarmInterval) {
+      clearInterval(repetitiveAlarmInterval);
+      repetitiveAlarmInterval = null;
+    }
+  }
+
+  function startPatientPolling() {
+    stopPatientPolling();
+    pollPatientStatus();
+    patientPollInterval = setInterval(pollPatientStatus, 2000);
+  }
+
+  function stopPatientPolling() {
+    if (patientPollInterval) {
+      clearInterval(patientPollInterval);
+      patientPollInterval = null;
+    }
+  }
+
+  async function pollPatientStatus() {
     const savedToken = activePatientToken || sessionStorage.getItem('activePatientToken');
-    if (!savedToken) return;
+    if (!savedToken) {
+      stopPatientPolling();
+      return;
+    }
 
     try {
-      const res = await api.getTokenStatus(savedToken);
+      const res = await api.getPatientStatus(savedToken);
       const data = res.data;
+      if (!data) return;
 
-      document.getElementById('ptRegistrationFormCard').style.display = 'none';
-      document.getElementById('ptDigitalTokenCard').style.display = 'block';
+      const tokenCard = document.getElementById('ptDigitalTokenCard');
+      const formCard = document.getElementById('ptRegistrationFormCard');
+      if (tokenCard && formCard && tokenCard.style.display !== 'block') {
+        formCard.style.display = 'none';
+        tokenCard.style.display = 'block';
+      }
 
       const heroNum = document.getElementById('ptHeroTokenNumber');
-      heroNum.textContent = data.tokenNumber;
-      heroNum.className = `digital-token-hero num ${data.severity === 'red' ? 'red' : ''}`;
+      if (heroNum) {
+        heroNum.textContent = data.tokenNumber;
+        heroNum.className = `digital-token-hero num ${data.severity === 'red' ? 'red' : ''}`;
+      }
 
       const statusBanner = document.getElementById('ptHeroStatusBanner');
       const statusText = document.getElementById('ptHeroStatusText');
+      const heroQueuePos = document.getElementById('ptHeroQueuePos');
+      const heroWaitTime = document.getElementById('ptHeroWaitTime');
+      const heroDocName = document.getElementById('ptHeroDocName');
+      const heroCabinName = document.getElementById('ptHeroCabinName');
 
-      if (data.status === 'in_consultation') {
-        statusBanner.style.background = 'var(--urgency-green-bg)';
-        statusBanner.style.color = 'var(--urgency-green)';
-        statusText.textContent = `🔔 PLEASE PROCEED TO ${data.doctor ? data.doctor.cabinNumber.toUpperCase() : 'CABIN'}`;
-        document.getElementById('ptHeroQueuePos').textContent = 'In Consultation';
-        document.getElementById('ptHeroWaitTime').textContent = '0 mins (Your Turn)';
+      if (heroDocName) heroDocName.textContent = data.doctorName || 'Assigned in Triage';
+      if (heroCabinName) heroCabinName.textContent = data.cabinNumber || 'Resuscitation Bay';
+
+      if (data.status === 'in_consultation' || data.isCalled) {
+        if (statusBanner) {
+          statusBanner.style.background = 'var(--urgency-green-bg)';
+          statusBanner.style.color = 'var(--urgency-green)';
+        }
+        if (statusText) {
+          statusText.textContent = `🔔 PLEASE PROCEED TO ${(data.cabinNumber || 'CABIN').toUpperCase()}`;
+        }
+        if (heroQueuePos) heroQueuePos.textContent = 'In Consultation';
+        if (heroWaitTime) heroWaitTime.textContent = '0 mins (Your Turn)';
+
+        // Detect call transition: Play Web Audio alarm & show prominent modal
+        if (!hasAlertedForCurrentCall) {
+          hasAlertedForCurrentCall = true;
+          triggerPatientTurnOverlay(data.doctorName, data.cabinNumber);
+          playSound('alarm');
+
+          // Repeat alarm tone until acknowledged by the patient
+          stopRepetitiveAlarm();
+          repetitiveAlarmInterval = setInterval(() => {
+            const overlay = document.getElementById('ptCabinCallOverlay');
+            if (overlay && overlay.style.display !== 'none') {
+              playSound('alarm');
+            } else {
+              stopRepetitiveAlarm();
+            }
+          }, 3500);
+        }
       } else if (data.status === 'completed') {
-        statusBanner.style.background = 'var(--bg-subtle)';
-        statusBanner.style.color = 'var(--text-muted)';
-        statusText.textContent = '✓ Consultation Completed. Thank you.';
-        document.getElementById('ptHeroQueuePos').textContent = 'Finished';
-        document.getElementById('ptHeroWaitTime').textContent = '0 mins';
+        stopRepetitiveAlarm();
+        if (statusBanner) {
+          statusBanner.style.background = 'var(--bg-subtle)';
+          statusBanner.style.color = 'var(--text-muted)';
+        }
+        if (statusText) statusText.textContent = '✓ Consultation Completed. Thank you.';
+        if (heroQueuePos) heroQueuePos.textContent = 'Finished';
+        if (heroWaitTime) heroWaitTime.textContent = '0 mins';
       } else {
-        statusBanner.style.background = 'var(--bg-subtle)';
-        statusBanner.style.color = 'var(--text-muted)';
-        statusText.textContent = 'Waiting for Physician Cabin Call';
-        document.getElementById('ptHeroQueuePos').textContent = data.queuePosition ? `#${data.queuePosition} in Line` : 'Next';
-        document.getElementById('ptHeroWaitTime').textContent = data.estimatedWaitMinutes <= 0 ? 'Immediate' : `~${data.estimatedWaitMinutes} mins`;
+        // Patient is waiting in queue
+        hasAlertedForCurrentCall = false;
+        if (statusBanner) {
+          statusBanner.style.background = 'var(--bg-subtle)';
+          statusBanner.style.color = 'var(--text-muted)';
+        }
+        if (statusText) statusText.textContent = 'Waiting for Physician Cabin Call';
+        if (heroQueuePos) heroQueuePos.textContent = data.queuePosition ? `#${data.queuePosition} in Line` : 'Next';
+        if (heroWaitTime) heroWaitTime.textContent = data.estimatedWaitMinutes <= 0 ? 'Immediate' : `~${data.estimatedWaitMinutes} mins`;
       }
 
-      document.getElementById('ptHeroDocName').textContent = data.doctor ? data.doctor.name : 'Assigned in Triage';
-      document.getElementById('ptHeroCabinName').textContent = data.doctor ? data.doctor.cabinNumber : 'Resuscitation Bay';
-
     } catch (e) {
-      // Token not found
+      // Ignored for intermittent network polling errors
     }
   }
 

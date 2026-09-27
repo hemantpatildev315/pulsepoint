@@ -246,6 +246,104 @@ router.get('/token/:tokenNumber', async (req, res) => {
 });
 
 /**
+ * GET /api/queue/patient-status
+ * Lightweight, high-performance polling endpoint for Vercel/serverless environments.
+ * Accepts query parameters: tokenNumber (or token) or patientId.
+ * Returns: status, cabinNumber, doctorName, calledAt, isCalled, queuePosition, etc.
+ */
+router.get('/patient-status', async (req, res) => {
+  try {
+    const tokenNumber = req.query.tokenNumber || req.query.token;
+    const patientId = req.query.patientId;
+
+    if (!tokenNumber && !patientId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide tokenNumber or patientId as a query parameter.',
+      });
+    }
+
+    let querySql = `
+      SELECT 
+        aq.id,
+        aq.token_number,
+        aq.status,
+        aq.priority_score,
+        aq.estimated_wait_minutes,
+        aq.updated_at,
+        aq.created_at,
+        p.id AS patient_id,
+        p.full_name AS patient_name,
+        d.id AS doctor_id,
+        d.full_name AS doctor_name,
+        d.cabin_number AS cabin_number,
+        d.specialty AS doctor_specialty
+      FROM appointments_queue aq
+      JOIN patients p ON aq.patient_id = p.id
+      LEFT JOIN doctors d ON aq.doctor_id = d.id
+    `;
+    const params = [];
+
+    if (tokenNumber) {
+      querySql += ' WHERE aq.token_number = ? LIMIT 1';
+      params.push(String(tokenNumber).trim());
+    } else {
+      querySql += ' WHERE aq.patient_id = ? ORDER BY aq.created_at DESC LIMIT 1';
+      params.push(parseInt(patientId, 10));
+    }
+
+    const [rows] = await pool.query(querySql, params);
+    if (rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Patient record not found',
+      });
+    }
+
+    const row = rows[0];
+    const isCalled = row.status === 'in_consultation';
+
+    // Calculate dynamic queue position if waiting
+    let queuePosition = null;
+    if (row.status === 'waiting') {
+      const [posRows] = await pool.query(`
+        SELECT COUNT(*) AS pos 
+        FROM appointments_queue 
+        WHERE status = 'waiting' 
+          AND (priority_score < ? OR (priority_score = ? AND created_at <= ?))
+      `, [row.priority_score, row.priority_score, row.created_at]);
+      queuePosition = posRows[0].pos || 1;
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        id: row.id,
+        tokenNumber: row.token_number,
+        patientId: row.patient_id,
+        patientName: row.patient_name,
+        status: row.status,
+        cabinNumber: row.cabin_number || (row.status === 'in_consultation' ? 'Cabin 104' : null),
+        doctorName: row.doctor_name || (row.status === 'in_consultation' ? 'Attending Physician' : null),
+        doctorSpecialty: row.doctor_specialty || null,
+        calledAt: isCalled ? row.updated_at : null,
+        isCalled,
+        queuePosition,
+        estimatedWaitMinutes: row.estimated_wait_minutes,
+        timestamp: new Date().toISOString(),
+      },
+    });
+  } catch (error) {
+    console.error('Error in /api/queue/patient-status:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve patient status',
+      error: error.message,
+    });
+  }
+});
+
+/**
  * GET /api/queue/stats
  * Real-time queue counters from MySQL
  */

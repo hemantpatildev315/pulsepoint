@@ -119,6 +119,18 @@ const api = {
   },
 
   /**
+   * Lightweight patient status check for Vercel/serverless short polling
+   */
+  async getPatientStatus(tokenNumber) {
+    const res = await fetch(`${API_BASE}/queue/patient-status?tokenNumber=${encodeURIComponent(tokenNumber)}`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || 'Failed to fetch patient status');
+    }
+    return res.json();
+  },
+
+  /**
    * Doctor Login (verifies ID and password)
    */
   async doctorLogin(doctorId, password) {

@@ -30,9 +30,12 @@ const dbConfig = {
   port,
   waitForConnections: true,
   connectionLimit: 10,
+  maxIdle: 10,
+  idleTimeout: 30000,
+  connectTimeout: 20000,
   queueLimit: 0,
   enableKeepAlive: true,
-  keepAliveInitialDelay: 10000,
+  keepAliveInitialDelay: 5000,
   dateStrings: true, // returns ISO formatted strings instead of JS Date objects for strict consistency
   ...(sslConfig ? { ssl: sslConfig } : {}),
 };
