@@ -1,20 +1,40 @@
 // src/config/db.js
-// MySQL / MariaDB Connection Pool for Node.js (cPanel / Local phpMyAdmin)
+// MySQL / MariaDB Connection Pool for Node.js (cPanel / Local phpMyAdmin / TiDB Cloud Serverless)
 require('dotenv').config();
 const mysql = require('mysql2/promise');
 
+const host = process.env.DB_HOST || 'localhost';
+const port = parseInt(process.env.DB_PORT || '3306', 10);
+const user = process.env.DB_USER || 'root';
+const password = process.env.DB_PASSWORD !== undefined ? process.env.DB_PASSWORD : '';
+const database = process.env.DB_NAME || 'clinic_db';
+
+// SSL Detection: TiDB Cloud Serverless strictly prohibits unencrypted transport
+const isTiDB = host.toLowerCase().includes('tidbcloud') || port === 4000;
+const sslEnv = process.env.DB_SSL ? process.env.DB_SSL.toLowerCase() === 'true' : null;
+const isProduction = process.env.NODE_ENV === 'production';
+const requiresSSL = sslEnv !== null ? sslEnv : (isTiDB || (isProduction && !host.includes('localhost') && !host.includes('127.0.0.1')));
+
+const sslConfig = requiresSSL
+  ? {
+      minVersion: 'TLSv1.2',
+      rejectUnauthorized: true,
+    }
+  : undefined;
+
 const dbConfig = {
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD !== undefined ? process.env.DB_PASSWORD : '',
-  database: process.env.DB_NAME || 'clinic_db',
-  port: parseInt(process.env.DB_PORT || '3306', 10),
+  host,
+  user,
+  password,
+  database,
+  port,
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
   enableKeepAlive: true,
   keepAliveInitialDelay: 10000,
   dateStrings: true, // returns ISO formatted strings instead of JS Date objects for strict consistency
+  ...(sslConfig ? { ssl: sslConfig } : {}),
 };
 
 // Create the connection pool
@@ -22,21 +42,30 @@ const pool = mysql.createPool(dbConfig);
 
 /**
  * Initializes database & tables if not already imported via phpMyAdmin.
- * Guarantees zero-config instant startup.
+ * Guarantees zero-config instant startup across local and cloud environments.
  */
 async function initDatabase() {
   let bootstrapConn = null;
   try {
     // 1. Ensure database exists
-    bootstrapConn = await mysql.createConnection({
-      host: dbConfig.host,
-      user: dbConfig.user,
-      password: dbConfig.password,
-      port: dbConfig.port,
-    });
+    try {
+      bootstrapConn = await mysql.createConnection({
+        host: dbConfig.host,
+        user: dbConfig.user,
+        password: dbConfig.password,
+        port: dbConfig.port,
+        ...(dbConfig.ssl ? { ssl: dbConfig.ssl } : {}),
+      });
 
-    await bootstrapConn.query(`CREATE DATABASE IF NOT EXISTS \`${dbConfig.database}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`);
-    await bootstrapConn.end();
+      await bootstrapConn.query(`CREATE DATABASE IF NOT EXISTS \`${dbConfig.database}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`);
+      await bootstrapConn.end();
+    } catch (bootstrapErr) {
+      if (bootstrapConn) {
+        try { await bootstrapConn.end(); } catch (_) {}
+      }
+      // Cloud providers (such as TiDB Serverless) may pre-create databases or restrict CREATE DATABASE
+      console.log(`[MySQL] Note: Pre-check (${bootstrapErr.message}). Continuing to connection pool for '${dbConfig.database}'...`);
+    }
 
     // 2. Ensure Core Tables exist in phpMyAdmin database
     const conn = await pool.getConnection();
